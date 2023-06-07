@@ -30,9 +30,9 @@ export default function App() {
         },
         headerTintColor: "white",
       }}>
-        <Stack.Screen name='HomeTabs' component={HomeTabs} options={{ title: 'Mercedes Bens', headerShown: false }} />
-        <Stack.Screen name='HomeRegister' component={HomeRegister} options={{ title: 'Mercedes Bens' }} />
-        <Stack.Screen name='HomeRecuperarContraseña' component={HomeRecuperarContraseña} options={{ title: 'Mercedes Bens' }} />
+        <Stack.Screen name='HomeTabs' component={HomeTabs} options={{ title: 'Hotel.com', headerShown: false }} />
+        <Stack.Screen name='HomeRegister' component={HomeRegister} options={{ title: 'Hotel.com' }} />
+        <Stack.Screen name='HomeRecuperarContraseña' component={HomeRecuperarContraseña} options={{ title: 'Hotel.com' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -55,7 +55,7 @@ function HomeScreen({ navigation }) {
       <Text style={[styleText.txt, { color: 'darkgray' }]}>Inicio de Sesion</Text>
 
       <TextInput
-        label="Correo electrónico"
+        label="Usuario"
         mode='flat'
         left={<TextInput.Icon icon="account-box" />}
         style={styleInp.input}
@@ -124,79 +124,121 @@ function HomeScreen({ navigation }) {
   );
 }
 
-function HomeRegister({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setpassword] = useState('');
-  const [errormess, seterrormess] = useState('');
+import { Checkbox } from 'react-native-paper';
 
-  let limpiar = () => {
-    seterrormess('');
-    setEmail('');
-    setpassword('');
-    setName('');
+function HomeRegister({ navigation }) {
+  const [usuario, setUsuario] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [rol, setRol] = useState('');
+  const [contraseña, setContraseña] = useState('');
+  const [palabraReservada, setPalabraReservada] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const limpiar = () => {
+    setUsuario('');
+    setNombre('');
+    setRol('');
+    setContraseña('');
+    setPalabraReservada('');
+    setErrorMessage('');
   };
 
   return (
     <View style={[styles.container, { backgroundColor: 'white' }]}>
-      <Text style={[styleText.txt, { color: 'darkgray' }]}>Crea una Cuenta</Text>
-      <Text style={styleTxtReg.txt2}>Al crear la cuenta tendrás acceso a todas las funciones del aplicativo</Text>
+      <Text style={[styleText.txt, { color: 'darkgray', marginBottom: 10 }]}>Crea una Cuenta</Text>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <Text style={[styleInp.pickerLabel, { marginRight: 10 }]}>Rol:</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Checkbox.Android
+            status={rol === 'Usuario' ? 'checked' : 'unchecked'}
+            onPress={() => setRol('Usuario')}
+            color="#FF9800"
+            uncheckedColor="#FF9800"
+          />
+          <Text style={styleInp.checkboxLabel}>Usuario</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 20 }}>
+          <Checkbox.Android
+            status={rol === 'Admin' ? 'checked' : 'unchecked'}
+            onPress={() => setRol('Admin')}
+            color="#FF9800"
+            uncheckedColor="#FF9800"
+          />
+          <Text style={styleInp.checkboxLabel}>Admin</Text>
+        </View>
+      </View>
+
       <TextInput
-        label="Correo electrónico"
-        mode='flat'
+        label="Usuario"
+        mode="flat"
         left={<TextInput.Icon icon="account-box" />}
         style={styleInp.input}
-        onChangeText={email => setEmail(email)}
-        value={email}
+        onChangeText={usuario => setUsuario(usuario)}
+        value={usuario}
       />
 
       <TextInput
-        label="Nombre del usuario"
-        mode='flat'
+        label="Nombre"
+        mode="flat"
         left={<TextInput.Icon icon="rename-box" />}
         style={styleInp.input}
-        onChangeText={name => setName(name)}
-        value={name}
+        onChangeText={nombre => setNombre(nombre)}
+        value={nombre}
       />
 
       <TextInput
-        label="Contraseña Nueva"
-        mode='flat'
+        label="Contraseña"
+        mode="flat"
         left={<TextInput.Icon icon="lock" />}
         style={styleInp.input}
-        onChangeText={password => setpassword(password)}
-        value={password}
+        onChangeText={contraseña => setContraseña(contraseña)}
+        value={contraseña}
         secureTextEntry
       />
+
+      <TextInput
+        label="Palabra Reservada"
+        mode="flat"
+        left={<TextInput.Icon icon="key" />}
+        style={styleInp.input}
+        onChangeText={palabraReservada => setPalabraReservada(palabraReservada)}
+        value={palabraReservada}
+        secureTextEntry
+      />
+
+      <Text style={{ color: 'white', marginTop: 22 }}>{errorMessage}</Text>
 
       <Button
         style={[styleBut.btn, { backgroundColor: '#FF9800' }]}
         icon="account-plus"
         mode="contained"
         onPress={() => {
-          if (email === '' || name === '' || password === '') {
-            seterrormess('Todos los campos son obligatorios');
+          if (usuario === '' || nombre === '' || contraseña === '' || palabraReservada === '') {
+            setErrorMessage('Todos los campos son obligatorios');
           } else {
-            let findUser = users.find(e => e.email === email);
+            let findUser = users.find(user => user.usuario === usuario);
             if (findUser === undefined) {
               users.push({
-                email: email,
-                name: name,
-                password: password
+                usuario: usuario,
+                nombre: nombre,
+                rol: rol,
+                contraseña: contraseña,
+                palabraReservada: palabraReservada
               });
               console.log(users);
-              setTimeout(function () {
+              setTimeout(() => {
                 limpiar();
               }, 4000);
-              seterrormess('Excelente, se ha creado la cuenta, ahora debes iniciar sesión...');
+              setErrorMessage('Excelente, se ha creado la cuenta. Ahora debes iniciar sesión...');
+            } else {
+              setErrorMessage('El usuario ya existe');
             }
           }
         }}
       >
         Crear Cuenta
       </Button>
-
-      <Text style={{ color: 'white', marginTop: 22 }}>{errormess}</Text>
     </View>
   );
 }
