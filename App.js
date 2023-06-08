@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Text, View, Image } from 'react-native';
+import { useState,useEffect } from 'react';
+import { Text, View, Image, } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,17 +10,43 @@ import { styles, styleImage, styleText, styleInp, styleBut, contenedorBtn, style
 import Cars from './components/Cars';
 import RentsCars from './components/RentCars';
 import Lista from './components/Lista';
+import axios from 'axios';
 
 
-let users = [
-  { email: 'andersonyepesbedoya@gmail.com', name: 'anderson', password: "22", role: 1 },
-  { email: 'miguel@gmail.com', name: 'alejandro', password: "11", role: 2 }
-];
+// let users = [
+//   { email: 'andersonyepesbedoya@gmail.com', name: 'anderson', password: "22", role: 1 },
+//   { email: 'miguel@gmail.com', name: 'alejandro', password: "11", role: 2 }
+// ];
+
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const onSearch = async() => {
+  const response= await axios.get('http://localhost:3000/buscarusuarios')
+  let users= response.data.usuarios
+  console.log(users)
+
+  let usuario=users.find((user)=>{})
+  
+}
+
 export default function App() {
+  // const [list,setList] = useState([]);
+  // useEffect(()=>{
+  //   axios({
+  //     url:"http://localhost:3000/buscarusuarios"
+  //   })
+  //   .then((response)=>{
+  //     setList(response.data)
+  //     console.log(list)
+  //   })
+  //   .catch((error)=>{
+  //     console.log(error)
+  //   })
+
+  // })
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName='HomeScreen' screenOptions={{
@@ -78,26 +104,28 @@ function HomeScreen({ navigation }) {
           style={[styleBut.btn, { backgroundColor: '#FF5722' }]}
           icon="login"
           mode="contained"
-          onPress={() => {
-            if (email !== '' && password !== '') {
-              let findUser = users.find(e => e.email === email && e.password === password);
-              if (findUser !== undefined) {
-                seterrormess('');
-                limpiar();
-                navigation.navigate('Cars');
-              } else {
-                seterrormess('Correo y/o contraseña incorrecto');
-                setTimeout(function () {
-                  limpiar();
-                }, 2000);
-              }
-            } else {
-              seterrormess('Todos los datos son obligatorios');
-              setTimeout(function () {
-                limpiar();
-              }, 2000);
-            }
-          }}
+          onPress={() => {onSearch()}
+          //   () => {
+          //   if (email !== '' && password !== '') {
+          //     let findUser = users.find(e => e.email === email && e.password === password);
+          //     if (findUser !== undefined) {
+          //       seterrormess('');
+          //       limpiar();
+          //       navigation.navigate('Cars');
+          //     } else {
+          //       seterrormess('Correo y/o contraseña incorrecto');
+          //       setTimeout(function () {
+          //         limpiar();
+          //       }, 2000);
+          //     }
+          //   } else {
+          //     seterrormess('Todos los datos son obligatorios');
+          //     setTimeout(function () {
+          //       limpiar();
+          //     }, 2000);
+          //   }
+          // }
+        }
         >
           Iniciar Sesión
         </Button>
