@@ -12,41 +12,12 @@ import RentsCars from './components/RentCars';
 import Lista from './components/Lista';
 import axios from 'axios';
 
-
-// let users = [
-//   { email: 'andersonyepesbedoya@gmail.com', name: 'anderson', password: "22", role: 1 },
-//   { email: 'miguel@gmail.com', name: 'alejandro', password: "11", role: 2 }
-// ];
-
-
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const onSearch = async() => {
-  const response= await axios.get('http://localhost:3000/buscarusuarios')
-  let users= response.data.usuarios
-  console.log(users)
-
-  let usuario=users.find((user)=>{})
-  
-}
-
 export default function App() {
-  // const [list,setList] = useState([]);
-  // useEffect(()=>{
-  //   axios({
-  //     url:"http://localhost:3000/buscarusuarios"
-  //   })
-  //   .then((response)=>{
-  //     setList(response.data)
-  //     console.log(list)
-  //   })
-  //   .catch((error)=>{
-  //     console.log(error)
-  //   })
-
-  // })
+  
+  
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName='HomeScreen' screenOptions={{
@@ -65,15 +36,42 @@ export default function App() {
 }
 
 function HomeScreen({ navigation }) {
-  const [email, setEmail] = useState('');
+  const [usuario, setUsuario] = useState('');
   const [password, setpassword] = useState('');
-  const [errormess, seterrormess] = useState('');
+  const [errorInicio, seterrorInicio] = useState('');
+  
 
   let limpiar = () => {
-    seterrormess('');
-    setEmail('');
+    seterrorInicio('');
+    setUsuario('');
     setpassword('');
   };
+
+  const onSearch = async() => {
+    const response= await axios.get('http://localhost:3000/buscarusuarios')
+    let users= response.data.usuarios
+      if (usuario !== '' || password !== '') {
+        let findUser = users.find(e => e.usuario === usuario && e.contraseña === password);
+        if (findUser !== undefined) {
+          seterrorInicio('');
+          limpiar();
+          if (findUser.rol == 'admin') {
+            navigation.navigate('Habitaciones');
+          }else {
+          navigation.navigate('Reservar');}
+        } else {
+          seterrorInicio('Usuario y/o contraseña incorrecto');
+          setTimeout(function () {
+            limpiar();
+          }, 2000);
+        }
+      } else {
+        seterrorInicio('Todos los datos son obligatorios');
+        setTimeout(function () {
+          limpiar();
+        }, 2000);
+      }
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: 'white' }]}>
@@ -85,8 +83,8 @@ function HomeScreen({ navigation }) {
         mode='flat'
         left={<TextInput.Icon icon="account-box" />}
         style={styleInp.input}
-        onChangeText={email => setEmail(email)}
-        value={email}
+        onChangeText={usuario => setUsuario(usuario)}
+        value={usuario}
       />
 
       <TextInput
@@ -105,26 +103,6 @@ function HomeScreen({ navigation }) {
           icon="login"
           mode="contained"
           onPress={() => {onSearch()}
-          //   () => {
-          //   if (email !== '' && password !== '') {
-          //     let findUser = users.find(e => e.email === email && e.password === password);
-          //     if (findUser !== undefined) {
-          //       seterrormess('');
-          //       limpiar();
-          //       navigation.navigate('Cars');
-          //     } else {
-          //       seterrormess('Correo y/o contraseña incorrecto');
-          //       setTimeout(function () {
-          //         limpiar();
-          //       }, 2000);
-          //     }
-          //   } else {
-          //     seterrormess('Todos los datos son obligatorios');
-          //     setTimeout(function () {
-          //       limpiar();
-          //     }, 2000);
-          //   }
-          // }
         }
         >
           Iniciar Sesión
@@ -138,9 +116,7 @@ function HomeScreen({ navigation }) {
           Registrarse
         </Button>
       </View>
-
-      <Text style={{ color: 'white', marginTop: 22, position: 'absolute' }}>{errormess}</Text>
-
+      <Text style={{ color: 'red', marginTop: 22 }}>{errorInicio}</Text>
       <Button
         style={[styleBut.btn, { backgroundColor: 'transparent', marginTop: 70 }]}
         labelStyle={{ color: 'gray' }}
@@ -148,6 +124,7 @@ function HomeScreen({ navigation }) {
       >
         ¿Olvidaste tu contraseña?
       </Button>
+     
     </View>
   );
 }
@@ -170,6 +147,40 @@ function HomeRegister({ navigation }) {
     setPalabraReservada('');
     setErrorMessage('');
   };
+
+  const  registrar= async()=> {
+    if (usuario === '' || nombre === '' || contraseña === '' || palabraReservada === '') {
+      setErrorMessage('Todos los campos son obligatorios');
+      setTimeout(function () {
+        limpiar();
+      }, 2000);
+    } else {
+      const response= await axios.get('http://localhost:3000/buscarusuarios')
+      let users= response.data.usuarios
+      let findUser = users.find(user => user.usuario === usuario);
+      if (findUser === undefined) {
+        const response = await axios.post('http://localhost:3000/crearusuario', {
+          usuario: usuario,
+          nombre: nombre,
+          rol: rol,
+          contraseña: contraseña,
+          palabraReservada: palabraReservada
+        });
+        setErrorMessage(response.mensaje)
+        setTimeout(() => {
+          limpiar();
+        }, 4000);
+        ;
+        
+      } else {
+        setErrorMessage('El usuario ya existe');
+        setTimeout(function () {
+          limpiar();
+        }, 2000);
+      }
+    }
+
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: 'white' }]}>
@@ -235,34 +246,14 @@ function HomeRegister({ navigation }) {
         secureTextEntry
       />
 
-      <Text style={{ color: 'white', marginTop: 22 }}>{errorMessage}</Text>
+      <Text style={{ color: 'red', marginTop: 22 }}>{errorMessage}</Text>
 
       <Button
         style={[styleBut.btn, { backgroundColor: '#FF9800' }]}
         icon="account-plus"
         mode="contained"
         onPress={() => {
-          if (usuario === '' || nombre === '' || contraseña === '' || palabraReservada === '') {
-            setErrorMessage('Todos los campos son obligatorios');
-          } else {
-            let findUser = users.find(user => user.usuario === usuario);
-            if (findUser === undefined) {
-              users.push({
-                usuario: usuario,
-                nombre: nombre,
-                rol: rol,
-                contraseña: contraseña,
-                palabraReservada: palabraReservada
-              });
-              console.log(users);
-              setTimeout(() => {
-                limpiar();
-              }, 4000);
-              setErrorMessage('Excelente, se ha creado la cuenta. Ahora debes iniciar sesión...');
-            } else {
-              setErrorMessage('El usuario ya existe');
-            }
-          }
+          registrar()
         }}
       >
         Crear Cuenta
@@ -272,6 +263,7 @@ function HomeRegister({ navigation }) {
 }
 
 function HomeTabs() {
+  const [isTabVisible, setTabVisible] = useState(true)
   return (
     <Tab.Navigator
       screenOptions={{
@@ -290,14 +282,15 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name='Cars'
+        name='Habitaciones'
         component={Cars}
         options={{
-          tabBarIcon: (tabInfo) => (<MaterialIcons name='hotel' size={30} color='white' />)
+          tabBarIcon: (tabInfo) => (<MaterialIcons name='hotel' size={30} color='white' />),
+          tabBarVisible:isTabVisible
         }}
       />
       <Tab.Screen
-        name='RentCars'
+        name='Reservar'
         component={RentsCars}
         options={{
           tabBarIcon: (tabInfo) => (<MaterialIcons name='save' size={30} color='white' />)
@@ -312,12 +305,45 @@ function HomeRecuperarContraseña({ navigation }) {
   const [email, setEmail] = useState('');
   const [keyword, setKeyword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   let limpiar = () => {
     setEmail('');
     setKeyword('');
     setNewPassword('');
+    setErrorMessage('');
   };
+
+  const cambiarContraseña= async ()=>{
+    const response= await axios.get('http://localhost:3000/buscarusuarios')
+    let users= response.data.usuarios
+    let findUser = users.find(e => e.usuario === email)
+    if (findUser!==undefined) {
+      if (findUser.palabraReservada===keyword) {
+        const response= await axios.put('http://localhost:3000/recuperarpassword/'+findUser._id,{
+          usuario: findUser.usuario,
+          nombre: findUser.nombre,
+          rol: findUser.rol,
+          contraseña: newPassword,
+          palabraReservada: findUser.palabraReservada
+        })
+       setErrorMessage(response.data.mensaje);
+        setTimeout(() => {
+          limpiar();
+        }, 4000);
+      } else{
+        setTimeout(() => {
+          limpiar();
+        }, 4000);
+        setErrorMessage("palabra clave incorrecta");
+      }
+    }else{
+      setTimeout(() => {
+        limpiar();
+      }, 4000);
+      setErrorMessage("Datos de usuario incorrectos");
+    }
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: 'white' }]}>
@@ -357,7 +383,7 @@ function HomeRecuperarContraseña({ navigation }) {
           icon="account-plus"
           mode="contained"
           onPress={() => {
-            // Implementar la lógica para recuperar la contraseña
+            cambiarContraseña()
           }}
         >
           Registrar
@@ -366,11 +392,13 @@ function HomeRecuperarContraseña({ navigation }) {
           style={[styleBut.btn, { backgroundColor: '#FF5722' }]}
           icon="login"
           mode="contained"
-          onPress={() => navigation.navigate('HomeScreen')}
+          onPress={() => navigation.navigate('HomeTabs')}
         >
           Iniciar Sesión
         </Button>
+        
       </View>
+      <Text style={{ color: 'red', marginTop: 22 }}>{errorMessage}</Text>
     </View>
   );
 }
